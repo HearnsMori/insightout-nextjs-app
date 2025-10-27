@@ -4,6 +4,12 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
 
+// --- TYPE DECLARATIONS FOR GLOBAL INJECTED VARIABLES ---
+// These declarations inform TypeScript that these variables exist in the global scope.
+declare const __app_id: string;
+declare const __firebase_config: string;
+declare const __initial_auth_token: string;
+
 // --- TYPE DEFINITIONS ---
 
 interface BlockDefinition {
@@ -53,6 +59,10 @@ interface SidebarBlockProps {
 interface BlockRendererProps {
   block: BlockInstance;
   position: { x: number; y: number };
+}
+
+interface RepoDocsViewProps {
+    data: RepoData;
 }
 
 interface CanvasViewProps {
