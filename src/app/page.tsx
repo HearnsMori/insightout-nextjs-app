@@ -83,7 +83,7 @@ const Navbar: React.FC = () => {
 
       <div style={{ display: 'flex', alignItems: 'center' }}>
         <motion.a
-          href="#"
+          href="./login"
           style={{ ...linkStyle, marginRight: '10px' }}
           whileHover={{ color: '#A78BFA' }}
           whileTap={{ scale: 0.95 }}
@@ -91,7 +91,7 @@ const Navbar: React.FC = () => {
           Log In
         </motion.a>
         <motion.a
-          href="#"
+          href=".signup"
           style={buttonStyle}
           variants={buttonVariants}
           whileHover="hover"
@@ -235,7 +235,7 @@ const Hero: React.FC = () => {
 
       {/* Action Button - Animated using buttonControls */}
       <motion.a
-        href="#"
+        href="./signup"
         style={buttonStyle}
         initial={{ opacity: 0, y: 50 }}
         animate={buttonControls}
