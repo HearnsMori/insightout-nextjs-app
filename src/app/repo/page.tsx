@@ -466,6 +466,7 @@ const App: React.FC = () => {
                 const data = docSnap.data();
                 if (data && data.blocks) {
                     try {
+                        // IMPORTANT: Parse the JSON string back into the array of objects
                         const loadedBlocks: BlockInstance[] = JSON.parse(data.blocks);
                         setBlocks(loadedBlocks);
                         console.log("Loaded block diagram from Firestore.");
