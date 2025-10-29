@@ -112,8 +112,8 @@ const Hero: React.FC = () => {
   const subControls = useAnimation();
   const buttonControls = useAnimation();
 
-  const mainText: string = "Where ideas connect, innovation begins";
-  const subText: string = "the community where your insight sparks global change.";
+  const mainText: string = "Artificial  Intelligence  Empower  Innovation.";
+  const subText: string = "the community where your insight do global change.";
 
   // Variants for staggered word animation (typing effect)
   const sentence: Variants = {

@@ -59,9 +59,11 @@ const formatCurrency = (amount: number, currency: Currency) => {
 // --- MOCK DATA (Updated with Currency) ---
 
 const mockRepos: Repo[] = [
-  { id: 1, name: 'Thesis Chapter 1', isPrivate: false },
-  { id: 2, name: 'Agentic AI Capabilities', isPrivate: true },
-  { id: 3, name: 'Platform Functionality', isPrivate: false },
+  { id: 1, name: 'NurSYNC App', isPrivate: false },
+  { id: 2, name: 'IOT Alarm System', isPrivate: false },
+  { id: 3, name: 'Architecture Project 137', isPrivate: false },
+  { id: 4, name: 'Agentic AI Capabilities', isPrivate: true },
+  { id: 5, name: 'Platform Functionality', isPrivate: false },
 ];
 
 const mockPrivateAccess: Repo[] = [
@@ -256,6 +258,7 @@ const DashboardPage: React.FC = () => {
         </nav>
 
         <div className="user-list">
+          Dreamer:
           <motion.div className="user-avatar" whileHover={{ scale: 1.1 }}><UserIcon className="user-avatar-icon" /></motion.div>
           <motion.div className="user-avatar" whileHover={{ scale: 1.1 }}><UserIcon className="user-avatar-icon" /></motion.div>
           <motion.div className="user-avatar" whileHover={{ scale: 1.1 }}><UserIcon className="user-avatar-icon" /></motion.div>
@@ -272,7 +275,7 @@ const DashboardPage: React.FC = () => {
         
         <div className="search-bar-full">
             <SearchIcon className="search-icon-small" />
-            <input type="text" placeholder="Search files..." className="search-input-full" />
+            <input type="text" placeholder="Search Repository..." className="search-input-full" />
         </div>
 
         {/* Action Buttons */}
@@ -292,7 +295,7 @@ const DashboardPage: React.FC = () => {
                 whileTap={{ scale: 0.95 }}
             >
                 <FolderIcon className="button-icon" />
-                Repository
+                Reports
             </motion.button>
         </div>
         
@@ -330,7 +333,12 @@ const DashboardPage: React.FC = () => {
         <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'white', marginBottom: '20px', padding: '0 20px' }}>
             AI Recommended Tasks
         </h2>
-        
+        <div className="search-bar-full" style={{
+          margin: '7px',
+        }}>
+            <SearchIcon className="search-icon-small" />
+            <input type="text" placeholder="Search Open Task..." className="search-input-full" />
+        </div>
         <motion.div 
             className="task-list"
             variants={containerVariants}

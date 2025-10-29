@@ -12,16 +12,16 @@ declare const __initial_auth_token: string;
 // --- TYPE DEFINITIONS ---
 
 interface BlockDefinition {
-  id: 'esp32' | 'camera' | 'and' | 'or' | 'system' | 'user';
-  type: 'IoT Device' | 'Logic Gate' | 'System Block' | 'User Block';
-  name: string;
-  icon: string;
+    id: 'esp32' | 'camera' | 'connector' | 'intangible' | 'tangible' | 'user' | 'environment';
+    type: 'Abstract Block' | 'Physical Block' | 'Required Block' | 'Custom Block';
+    name: string;
+    icon: string;
 }
 
 interface BlockInstance extends BlockDefinition {
-  instanceId: string;
-  position: { x: number; y: number };
-  properties: Record<string, any>;
+    instanceId: string;
+    position: { x: number; y: number };
+    properties: Record<string, any>;
 }
 
 interface File {
@@ -37,27 +37,43 @@ interface RepoData {
     files: File[];
 }
 
+interface Task {
+    id: string;
+    title: string;
+    description: string;
+    status: 'todo' | 'in_progress' | 'completed';
+    priority: 'low' | 'medium' | 'high';
+    assignedTo: {
+        type: 'contributor' | 'group' | 'public' | 'unassigned';
+        id?: string;
+        name?: string;
+    };
+    createdAt: number;
+    dueDate?: number;
+    tags: string[];
+}
+
 // Interfaces for component props
 interface BlockIconProps {
-  icon: string;
-  style?: React.CSSProperties; // Added to allow external style override/extension
+    icon: string;
+    style?: React.CSSProperties; // Added to allow external style override/extension
 }
 
 interface IconButtonProps {
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-  isActive?: boolean;
+    icon: React.ReactNode;
+    label: string;
+    onClick: () => void;
+    isActive?: boolean;
 }
 
 interface SidebarBlockProps {
-  block: BlockDefinition;
-  onDragStart: (e: React.DragEvent<HTMLDivElement>, blockDef: BlockDefinition) => void;
+    block: BlockDefinition;
+    onDragStart: (e: React.DragEvent<HTMLDivElement>, blockDef: BlockDefinition) => void;
 }
 
 interface BlockRendererProps {
-  block: BlockInstance;
-  position: { x: number; y: number };
+    block: BlockInstance;
+    position: { x: number; y: number };
 }
 
 interface RepoDocsViewProps {
@@ -65,11 +81,11 @@ interface RepoDocsViewProps {
 }
 
 interface CanvasViewProps {
-  blocks: BlockInstance[];
-  setBlocks: React.Dispatch<React.SetStateAction<BlockInstance[]>>;
-  userId: string | null;
-  db: any; // Firestore object
-  authReady: boolean;
+    blocks: BlockInstance[];
+    setBlocks: React.Dispatch<React.SetStateAction<BlockInstance[]>>;
+    userId: string | null;
+    db: any; // Firestore object
+    authReady: boolean;
 }
 
 
@@ -80,17 +96,19 @@ const initialAuthToken: string | null = typeof __initial_auth_token !== 'undefin
 
 // Mock Block Definitions
 const BLOCK_DEFINITIONS: BlockDefinition[] = [
-  { id: 'esp32', type: 'IoT Device', name: 'ESP32', icon: '⚡' },
-  { id: 'camera', type: 'IoT Device', name: 'Camera', icon: '📷' },
-  { id: 'and', type: 'Logic Gate', name: 'AND Gate', icon: '∧' },
-  { id: 'or', type: 'Logic Gate', name: 'OR Gate', icon: '∨' },
-  { id: 'system', type: 'System Block', name: 'Process Code', icon: '💻' },
-  { id: 'user', type: 'User Block', name: 'Human Input', icon: '👤' },
+
+    { id: 'user', type: 'Required Block', name: 'User', icon: '👤' },
+    { id: 'environment', type: 'Required Block', name: 'Environment', icon: '🌍' },
+    { id: 'tangible', type: 'Physical Block', name: 'Tangible', icon: '◼' },
+    { id: 'intangible', type: 'Abstract Block', name: 'Intangible', icon: '💡' },
+    { id: 'connector', type: 'Physical Block', name: 'Connector', icon: '🔗' },
+    { id: 'camera', type: 'Custom Block', name: 'Camera', icon: '📷' },
+    { id: 'esp32', type: 'Custom Block', name: 'ESP32', icon: '📱' },
 ];
 
 // Mock Repository Data
 const REPO_DATA: RepoData = {
-    name: "InsightOut - Smart Home Hub",
+    name: "Repo Name",
     description: "A collaborative project for building visual IoT automation flows.",
     author: "user-XYZ-42",
     files: [
@@ -104,14 +122,14 @@ const REPO_DATA: RepoData = {
 // --- UTILITY COMPONENTS ---
 
 const BlockIcon: React.FC<BlockIconProps> = ({ icon, style = {} }) => (
-    <div 
+    <div
         style={{
-            padding: '8px', 
+            padding: '8px',
             borderRadius: '9999px', // rounded-full
             backgroundColor: '#4B5563', // bg-gray-700
-            color: 'white', 
-            display: 'flex', 
-            alignItems: 'center', 
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
             justifyContent: 'center',
             ...style
         }}
@@ -124,10 +142,10 @@ const IconButton: React.FC<IconButtonProps> = ({ icon, label, onClick, isActive 
     // Note: Inline styles cannot handle hover/active states easily. 
     // This provides only the base and active styles.
     const baseStyle: React.CSSProperties = {
-        display: 'flex', 
-        alignItems: 'center', 
+        display: 'flex',
+        alignItems: 'center',
         gap: '8px', // space-x-2
-        padding: '8px', 
+        padding: '8px',
         borderRadius: '8px', // rounded-lg
         transition: 'all 200ms ease', // transition-all duration-200
         cursor: 'pointer',
@@ -175,8 +193,8 @@ const SidebarBlock: React.FC<SidebarBlockProps> = ({ block, onDragStart }) => (
             // Note: The hover effect is not easily achievable with pure inline style without JS handlers.
         }}
     >
-        <BlockIcon 
-            icon={block.icon} 
+        <BlockIcon
+            icon={block.icon}
             style={{ fontSize: '1.125rem', backgroundColor: '#6366F1' }} // text-lg bg-indigo-500
         />
         <div>
@@ -187,9 +205,9 @@ const SidebarBlock: React.FC<SidebarBlockProps> = ({ block, onDragStart }) => (
 );
 
 const BlockRenderer: React.FC<BlockRendererProps> = ({ block, position }) => {
-    const isSystem: boolean = block.id === 'system';
+    const isSystem: boolean = block.id === 'user' || block.id === 'environment';
     const bgColor: string = isSystem ? '#4F46E5' : (block.type.includes('Logic') ? '#F97316' : '#10B981'); // bg-indigo-600, bg-orange-500, bg-green-500
-    
+
     // Note: Tailwind's custom glow shadow is not possible with standard inline CSS. 
     // We'll use a standard box-shadow for approximation.
     const shadow: string = isSystem ? `0 0 15px rgba(79, 70, 229, 0.7)` : '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'; // shadow-indigo-glow, shadow-lg
@@ -233,15 +251,15 @@ const BlockRenderer: React.FC<BlockRendererProps> = ({ block, position }) => {
             data-block-id={block.instanceId}
         >
             <div style={{ fontSize: '1.25rem' }}>{block.icon}</div> {/* text-xl */}
-            <div 
-                style={{ 
-                    fontSize: '0.75rem', 
-                    fontWeight: '700', 
-                    overflow: 'hidden', 
-                    textOverflow: 'ellipsis', 
+            <div
+                style={{
+                    fontSize: '0.75rem',
+                    fontWeight: '700',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap', // truncate w-full
-                    width: '100%', 
-                    textAlign: 'center' 
+                    width: '100%',
+                    textAlign: 'center'
                 }}
             >{block.name}</div> {/* text-xs font-bold truncate w-full text-center */}
             <div style={statusDotStyle} title="Connected"></div>
@@ -251,6 +269,127 @@ const BlockRenderer: React.FC<BlockRendererProps> = ({ block, position }) => {
 
 
 // --- VIEWS ---
+
+// Add TaskView component
+const TaskView: React.FC = () => {
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [showNewTaskModal, setShowNewTaskModal] = useState(false);
+
+    const createNewTask = (task: Omit<Task, 'id' | 'createdAt'>) => {
+        const newTask: Task = {
+            ...task,
+            id: Date.now().toString(),
+            createdAt: Date.now(),
+        };
+        setTasks([...tasks, newTask]);
+        // Here you would also save to Firestore
+    };
+
+    return (
+        <div style={{ padding: '32px', maxWidth: '1200px', margin: '0 auto' }}>
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '24px'
+            }}>
+                <h2 style={{ fontSize: '1.875rem', fontWeight: '700', color: 'white' }}>
+                    Tasks Management
+                </h2>
+                <button
+                    onClick={() => setShowNewTaskModal(true)}
+                    style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#4F46E5',
+                        color: 'white',
+                        borderRadius: '8px',
+                        fontWeight: '600'
+                    }}
+                >
+                    Create New Task
+                </button>
+            </div>
+
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                gap: '24px'
+            }}>
+                {tasks.map(task => (
+                    <div key={task.id} style={{
+                        backgroundColor: '#1F2937',
+                        borderRadius: '12px',
+                        padding: '16px',
+                        border: '1px solid #374151'
+                    }}>
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            marginBottom: '12px'
+                        }}>
+                            <h3 style={{
+                                color: 'white',
+                                fontWeight: '600'
+                            }}>{task.title}</h3>
+                            <span style={{
+                                padding: '4px 8px',
+                                borderRadius: '9999px',
+                                fontSize: '0.75rem',
+                                backgroundColor: task.priority === 'high' ? '#DC2626' :
+                                    task.priority === 'medium' ? '#D97706' : '#059669',
+                                color: 'white'
+                            }}>
+                                {task.priority}
+                            </span>
+                        </div>
+                        <p style={{ color: '#9CA3AF', fontSize: '0.875rem' }}>
+                            {task.description}
+                        </p>
+                        <div style={{
+                            marginTop: '12px',
+                            padding: '8px',
+                            backgroundColor: '#374151',
+                            borderRadius: '8px',
+                            fontSize: '0.875rem',
+                            color: '#D1D5DB'
+                        }}>
+                            Assigned to: {task.assignedTo.type === 'unassigned' ?
+                                'Unassigned' :
+                                `${task.assignedTo.type} - ${task.assignedTo.name}`}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {showNewTaskModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: '0',
+                    left: '0',
+                    right: '0',
+                    bottom: '0',
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                }}>
+                    {/* Add your new task form here */}
+                    <div style={{
+                        backgroundColor: '#1F2937',
+                        padding: '24px',
+                        borderRadius: '12px',
+                        width: '500px'
+                    }}>
+                        <h3 style={{ color: 'white', marginBottom: '16px' }}>Create New Task</h3>
+                        {/* Add form fields */}
+                        <button onClick={() => setShowNewTaskModal(false)}>Close</button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 
 const RepoDocsView: React.FC<RepoDocsViewProps> = ({ data }) => (
     <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '32px', maxWidth: '896px', margin: '0 auto' }}> {/* p-8 space-y-8 max-w-4xl mx-auto */}
@@ -305,11 +444,242 @@ const RepoDocsView: React.FC<RepoDocsViewProps> = ({ data }) => (
     </div>
 );
 
+// Add new interface for component props
+interface PropertyPanelProps {
+    selectedBlock: BlockInstance | null;
+}
+
+// Add new component for Properties Panel
+const PropertiesPanel: React.FC<PropertyPanelProps> = ({ selectedBlock }) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="property-group">
+            <label style={{
+                color: '#9CA3AF',
+                fontSize: '0.875rem',
+                display: 'block',
+                marginBottom: '4px'
+            }}>
+                Category
+            </label>
+            <select
+                style={{
+                    width: '100%',
+                    padding: '8px',
+                    backgroundColor: '#374151',
+                    color: 'white',
+                    border: '1px solid #4B5563',
+                    borderRadius: '6px'
+                }}
+            >
+                <option value="computer_system">Computer System</option>
+                <option value="network">Network</option>
+                <option value="iot">IoT</option>
+            </select>
+        </div>
+
+        <div className="property-group">
+            <label style={{
+                color: '#9CA3AF',
+                fontSize: '0.875rem',
+                display: 'block',
+                marginBottom: '4px'
+            }}>
+                Devices
+            </label>
+            <div style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '8px'
+            }}>
+                <span style={{
+                    padding: '4px 8px',
+                    backgroundColor: '#374151',
+                    color: 'white',
+                    borderRadius: '4px',
+                    fontSize: '0.875rem'
+                }}>
+                    Laptop
+                </span>
+                <span style={{
+                    padding: '4px 8px',
+                    backgroundColor: '#374151',
+                    color: 'white',
+                    borderRadius: '4px',
+                    fontSize: '0.875rem'
+                }}>
+                    Input
+                </span>
+                <span style={{
+                    padding: '4px 8px',
+                    backgroundColor: '#374151',
+                    color: 'white',
+                    borderRadius: '4px',
+                    fontSize: '0.875rem'
+                }}>
+                    Output
+                </span>
+            </div>
+        </div>
+        <br />
+        for User
+        <div className="property-group">
+            <label style={{
+                color: '#9CA3AF',
+                fontSize: '0.875rem',
+                display: 'block',
+                marginBottom: '4px'
+            }}>
+                Type
+            </label>
+            <select
+                style={{
+                    width: '100%',
+                    padding: '8px',
+                    backgroundColor: '#374151',
+                    color: 'white',
+                    border: '1px solid #4B5563',
+                    borderRadius: '6px'
+                }}
+            >
+                <option value="network">Living</option>
+                <option value="iot">Non-living</option>
+            </select>
+        </div>
+        <div className="property-group">
+            <label style={{
+                color: '#9CA3AF',
+                fontSize: '0.875rem',
+                display: 'block',
+                marginBottom: '4px'
+            }}>
+                Who
+            </label>
+            <select
+                style={{
+                    width: '100%',
+                    padding: '8px',
+                    backgroundColor: '#374151',
+                    color: 'white',
+                    border: '1px solid #4B5563',
+                    borderRadius: '6px'
+                }}
+            >
+                <option value="computer_system">Human</option>
+                <option value="network">Animal</option>
+                <option value="iot">Others</option>
+            </select>
+        </div>
+        <div className="property-group">
+            <label style={{
+                color: '#168a16ff',
+                fontSize: '0.875rem',
+                display: 'block',
+                marginBottom: '4px'
+            }}>
+                Add More Properties +
+            </label>
+        </div>
+        <br />
+        For Environment
+        <div className="property-group">
+            <label style={{
+                color: '#9CA3AF',
+                fontSize: '0.875rem',
+                display: 'block',
+                marginBottom: '4px'
+            }}>
+                Where
+            </label>
+            <label style={{
+                color: '#9CA3AF',
+                fontSize: '0.73rem',
+                display: 'block',
+                marginBottom: '4px'
+            }}>
+                Open Location Picker
+            </label>
+        </div>
+        <div className="property-group">
+            <label style={{
+                color: '#168a16ff',
+                fontSize: '0.875rem',
+                display: 'block',
+                marginBottom: '4px'
+            }}>
+                Add More Properties +
+            </label>
+        </div>
+    </div>
+);
+
+// Add new component for Logic Panel
+const LogicPanel: React.FC = () => (
+    <>
+        <div className="property-group">
+            <label style={{
+                color: '#9CA3AF',
+                fontSize: '0.875rem',
+                display: 'block',
+                marginBottom: '4px'
+            }}>
+                Type
+            </label>
+            <select
+                style={{
+                    width: '100%',
+                    padding: '8px',
+                    backgroundColor: '#374151',
+                    color: 'white',
+                    border: '1px solid #4B5563',
+                    borderRadius: '6px'
+                }}
+            >
+                <option value="network">Software</option>
+                <option value="iot">Processor</option>
+                <option value="iot">Others</option>
+            </select>
+            <label style={{
+                color: '#10864fff',
+                fontSize: '0.875rem',
+                display: 'block',
+                marginBottom: '4px'
+            }}>
+                AI Logic Detector On
+            </label>
+        </div>
+        <div style={{
+            backgroundColor: '#374151',
+            padding: '12px',
+            borderRadius: '6px',
+            fontFamily: 'monospace'
+        }}>
+
+            <pre style={{
+                color: '#E5E7EB',
+                fontSize: '0.875rem',
+                whiteSpace: 'pre-wrap'
+            }}>
+                {`function process(input) {
+    // Process logic here
+    return {
+        status: "success",
+        output: input.value * 2
+    };
+}`}
+            </pre>
+        </div>
+    </>
+);
+
+
 const CanvasView: React.FC<CanvasViewProps> = ({ blocks, setBlocks, userId, db, authReady }) => {
     const [draggingBlock, setDraggingBlock] = useState<BlockDefinition | null>(null);
     const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
     const [message, setMessage] = useState<string>('');
-    
+    // Add to CanvasView component state declarations
+    const [viewMode, setViewMode] = useState<'properties' | 'logic'>('properties');
+    const [selectedBlock, setSelectedBlock] = useState<BlockInstance | null>(null);
+
     // Grid settings
     const gridSize: number = 40;
     const canvasRef = React.useRef<HTMLDivElement>(null);
@@ -329,7 +699,7 @@ const CanvasView: React.FC<CanvasViewProps> = ({ blocks, setBlocks, userId, db, 
 
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
-        
+
         if (!draggingBlock || !canvasRef.current) return;
 
         const rect: DOMRect = canvasRef.current.getBoundingClientRect();
@@ -346,7 +716,7 @@ const CanvasView: React.FC<CanvasViewProps> = ({ blocks, setBlocks, userId, db, 
             position: { x: snappedX, y: snappedY },
             properties: {}
         };
-        
+
         setBlocks((prev: BlockInstance[]) => [...prev, newBlock]);
         setDraggingBlock(null);
     };
@@ -378,13 +748,13 @@ const CanvasView: React.FC<CanvasViewProps> = ({ blocks, setBlocks, userId, db, 
 
     // Draw the mock wire/connection (visual only)
     const Wire: React.FC = () => (
-        <div 
-            style={{ 
-                position: 'absolute', 
-                left: '180px', top: '100px', 
-                width: '180px', height: '2px', 
-                backgroundColor: 'cyan', 
-                borderRadius: '1px', 
+        <div
+            style={{
+                position: 'absolute',
+                left: '180px', top: '100px',
+                width: '180px', height: '2px',
+                backgroundColor: 'cyan',
+                borderRadius: '1px',
                 boxShadow: '0 0 8px cyan'
             }}
             title="Mock Connection: ESP32 -> System Block"
@@ -398,14 +768,14 @@ const CanvasView: React.FC<CanvasViewProps> = ({ blocks, setBlocks, userId, db, 
                 <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: 'white', marginBottom: '16px' }}>Block Library</h3> {/* text-xl font-bold text-white mb-4 */}
                 <div style={{ overflowY: 'auto', flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}> {/* overflow-y-auto flex-grow space-y-2 */}
                     {BLOCK_DEFINITIONS.map((block: BlockDefinition) => (
-                        <SidebarBlock 
-                            key={block.id} 
-                            block={block} 
-                            onDragStart={handleDragStart} 
+                        <SidebarBlock
+                            key={block.id}
+                            block={block}
+                            onDragStart={handleDragStart}
                         />
                     ))}
                 </div>
-                <button 
+                <button
                     onClick={saveDiagram}
                     disabled={!authReady}
                     style={{
@@ -422,18 +792,36 @@ const CanvasView: React.FC<CanvasViewProps> = ({ blocks, setBlocks, userId, db, 
                 >
                     {message.includes('Saving') ? 'Saving...' : 'Save Diagram'}
                 </button>
+
                 {message && !message.includes('Saving') && (
                     <p style={{ textAlign: 'center', fontSize: '0.875rem', marginTop: '8px', color: message.includes('Error') ? '#F87171' : '#4ADE80' }}>{message}</p>
                 )}
+                <button
+                    onClick={saveDiagram}
+                    disabled={!authReady}
+                    style={{
+                        marginTop: '16px', // mt-4
+                        padding: '12px', // p-3
+                        backgroundColor: '#6366F1', // bg-indigo-500
+                        color: 'white',
+                        fontWeight: '700', // font-bold
+                        borderRadius: '12px', // rounded-xl
+                        transition: 'background-color 150ms ease', // hover:bg-indigo-700 transition duration-150
+                        cursor: authReady ? 'pointer' : 'not-allowed',
+                        opacity: authReady ? 1 : 0.6, // disabled:opacity-60 (approximation)
+                    }}
+                >
+                    {message.includes('Saving') ? '...' : 'Create Custom Block'}
+                </button>
             </div>
-            
+
             {/* Main Canvas Area */}
-            <div 
+            <div
                 ref={canvasRef}
-                style={{ 
-                    flexGrow: 1, 
-                    backgroundColor: '#0B0F19', 
-                    position: 'relative', 
+                style={{
+                    flexGrow: 1,
+                    backgroundColor: '#0B0F19',
+                    position: 'relative',
                     overflow: 'auto',
                     minWidth: '0' // For flex-grow to work properly
                 }}
@@ -441,9 +829,9 @@ const CanvasView: React.FC<CanvasViewProps> = ({ blocks, setBlocks, userId, db, 
                 onDrop={handleDrop}
             >
                 {/* Grid Visual */}
-                <div 
+                <div
                     style={{
-                        position: 'absolute', 
+                        position: 'absolute',
                         inset: '0', // inset-0
                         zIndex: 0, // z-0
                         opacity: 0.1, // opacity-10
@@ -456,14 +844,14 @@ const CanvasView: React.FC<CanvasViewProps> = ({ blocks, setBlocks, userId, db, 
                 ></div>
 
                 <div style={{ position: 'relative', width: '2000px', height: '2000px', padding: '32px' }}> {/* relative w-[2000px] h-[2000px] p-8 */}
-                    <h2 
-                        style={{ 
-                            fontSize: '1.875rem', 
-                            fontWeight: '800', 
-                            color: 'white', 
-                            marginBottom: '24px', 
-                            padding: '16px', 
-                            backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+                    <h2
+                        style={{
+                            fontSize: '1.875rem',
+                            fontWeight: '800',
+                            color: 'white',
+                            marginBottom: '24px',
+                            padding: '16px',
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
                             borderRadius: '8px',
                             backdropFilter: 'blur(5px)', // backdrop-blur-sm (approximation)
                         }}
@@ -472,23 +860,23 @@ const CanvasView: React.FC<CanvasViewProps> = ({ blocks, setBlocks, userId, db, 
                     </h2>
 
                     {blocks.map((block: BlockInstance) => (
-                        <BlockRenderer 
-                            key={block.instanceId} 
-                            block={block} 
-                            position={block.position} 
+                        <BlockRenderer
+                            key={block.instanceId}
+                            block={block}
+                            position={block.position}
                         />
                     ))}
 
                     {/* Example of a simulated wire connection */}
                     <Wire />
-                    
+
                     {blocks.length === 0 && (
                         <div style={{
-                            position: 'absolute', 
-                            top: '50%', left: '50%', 
-                            transform: 'translate(-50%, -50%)', 
-                            color: '#4B5563', 
-                            fontSize: '1.25rem', 
+                            position: 'absolute',
+                            top: '50%', left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            color: '#4B5563',
+                            fontSize: '1.25rem',
                             pointerEvents: 'none'
                         }}>
                             Drag blocks from the sidebar to start building your flow.
@@ -498,21 +886,72 @@ const CanvasView: React.FC<CanvasViewProps> = ({ blocks, setBlocks, userId, db, 
             </div>
 
             {/* Right Sidebar - Properties/Console */}
-            <div style={{ width: '320px', backgroundColor: '#0B0F19', padding: '16px', borderLeft: '1px solid #374151' }}> {/* w-80 bg-gray-900 p-4 border-l border-gray-700 */}
-                <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: 'white', marginBottom: '16px' }}>Properties / Console</h3>
-                <div style={{ backgroundColor: '#1F2937', padding: '16px', borderRadius: '12px', boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.6)', height: '50%', overflowY: 'auto', marginBottom: '16px' }}>
-                    <p style={{ color: '#818CF8', fontFamily: 'monospace', fontSize: '0.875rem' }}>-- Console Output --</p>
-                    <p style={{ color: '#9CA3AF', fontSize: '0.75rem', marginTop: '8px' }}>[10:01:23] System Block: Waiting for trigger...</p>
-                    <p style={{ color: '#9CA3AF', fontSize: '0.75rem' }}>[10:01:25] ESP32-1: Motion detected (Input: true)</p>
-                    <p style={{ color: '#4ADE80', fontSize: '0.75rem' }}>[10:01:25] System Block: Processing code...</p>
-                    <p style={{ color: '#9CA3AF', fontSize: '0.75rem' }}>[10:01:26] System Block: Output: {'{"light": "on"}'}</p>
-                </div>
-                <div style={{ backgroundColor: '#1F2937', padding: '16px', borderRadius: '12px', boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.6)', height: '50%', overflowY: 'auto' }}>
-                    <p style={{ color: '#FACC15', fontFamily: 'monospace', fontSize: '0.875rem' }}>-- Selected Block Properties --</p>
-                    <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '12px', color: '#D1D5DB', fontSize: '0.875rem' }}>
-                        <p>No block selected.</p>
-                        <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>Click a block on the canvas to edit its properties, code (for system blocks), or user role (for user blocks).</p>
+            <div style={{ width: '320px', backgroundColor: '#0B0F19', padding: '16px', borderLeft: '1px solid #374151' }}>
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '16px'
+                }}>
+                    <h3 style={{
+                        fontSize: '1.25rem',
+                        fontWeight: '700',
+                        color: 'white'
+                    }}>
+                        Block Details
+                    </h3>
+                    <div style={{
+                        display: 'flex',
+                        backgroundColor: '#374151',
+                        borderRadius: '8px',
+                        padding: '2px'
+                    }}>
+                        <button
+                            onClick={() => setViewMode('properties')}
+                            style={{
+                                padding: '6px 12px',
+                                borderRadius: '6px',
+                                fontSize: '0.875rem',
+                                backgroundColor: viewMode === 'properties' ? '#4F46E5' : 'transparent',
+                                color: viewMode === 'properties' ? 'white' : '#9CA3AF',
+                                border: 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            Properties
+                        </button>
+                        <button
+                            onClick={() => setViewMode('logic')}
+                            style={{
+                                padding: '6px 12px',
+                                borderRadius: '6px',
+                                fontSize: '0.875rem',
+                                backgroundColor: viewMode === 'logic' ? '#4F46E5' : 'transparent',
+                                color: viewMode === 'logic' ? 'white' : '#9CA3AF',
+                                border: 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            Logic
+                        </button>
                     </div>
+                </div>
+
+                <div style={{
+                    backgroundColor: '#1F2937',
+                    padding: '16px',
+                    borderRadius: '12px',
+                    boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.6)',
+                    height: 'calc(100% - 60px)',
+                    overflowY: 'auto'
+                }}>
+                    {viewMode === 'properties' ? (
+                        <PropertiesPanel selectedBlock={selectedBlock} />
+                    ) : (
+                        <LogicPanel />
+                    )}
                 </div>
             </div>
         </div>
@@ -523,7 +962,7 @@ const CanvasView: React.FC<CanvasViewProps> = ({ blocks, setBlocks, userId, db, 
 // --- MAIN APP COMPONENT ---
 
 const App: React.FC = () => {
-    const [view, setView] = useState<'canvas' | 'docs'>('canvas');
+    const [view, setView] = useState<'canvas' | 'docs' | 'tasks'>('canvas');
     const [blocks, setBlocks] = useState<BlockInstance[]>([]);
     const [db, setDb] = useState<any>(null);
     const [userId, setUserId] = useState<string | null>(null);
@@ -618,22 +1057,50 @@ const App: React.FC = () => {
         <div style={{ minHeight: '100vh', backgroundColor: '#0B0F19', fontFamily: 'sans-serif', WebkitFontSmoothing: 'antialiased', color: '#E5E7EB' }}> {/* min-h-screen bg-gray-900 font-sans antialiased text-gray-100 */}
             {/* Header */}
             <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: '#1F2937', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', height: '64px' }}> {/* flex justify-between items-center p-4 bg-gray-800 shadow-md h-16 */}
+
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}> {/* flex items-center space-x-4 */}
-                    <h1 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#818CF8' }}> {/* text-2xl font-extrabold text-indigo-400 */}
+                    <button
+                        onClick={() => window.location.href = '../dashboard'}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '8px',
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            color: '#9CA3AF',
+                            transition: 'all 0.2s',
+                            fontSize: '1.25rem',
+                        }}
+                        title="Back to Canvas"
+                    >
+                        ←
+                    </button>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#818CF8' }}>
                         {REPO_DATA.name}
                     </h1>
-                    <span style={{ fontSize: '0.875rem', color: '#6B7280' }}>Repo ID: {appId} | User: {userId}</span> {/* text-sm text-gray-500 */}
+                    <span style={{ fontSize: '0.875rem', color: '#6B7280' }}>
+                        Repo ID: {appId} | User: {userId}
+                    </span>
                 </div>
                 <nav style={{ display: 'flex', gap: '16px' }}> {/* flex space-x-4 */}
-                    <IconButton 
-                        icon={<span style={{ fontSize: '1.25rem' }}>📚</span>} 
-                        label="Docs & Files" 
+                    <IconButton
+                        icon={<span style={{ fontSize: '1.25rem' }}>📚</span>}
+                        label="Docs & Files"
                         onClick={() => setView('docs')}
                         isActive={view === 'docs'}
                     />
-                    <IconButton 
-                        icon={<span style={{ fontSize: '1.25rem' }}>⚙️</span>} 
-                        label="2D Canvas" 
+                    <IconButton
+                        icon={<span style={{ fontSize: '1.25rem' }}>📋</span>}
+                        label="Tasks"
+                        onClick={() => setView('tasks')}
+                        isActive={view === 'tasks'}
+                    />
+                    <IconButton
+                        icon={<span style={{ fontSize: '1.25rem' }}>⚙️</span>}
+                        label="2D Canvas"
                         onClick={() => setView('canvas')}
                         isActive={view === 'canvas'}
                     />
@@ -643,11 +1110,12 @@ const App: React.FC = () => {
             {/* Main Content View Switch */}
             <main>
                 {view === 'docs' && <RepoDocsView data={REPO_DATA} />}
+                {view === 'tasks' && <TaskView />}
                 {view === 'canvas' && (
-                    <CanvasView 
-                        blocks={blocks} 
-                        setBlocks={setBlocks} 
-                        userId={userId} 
+                    <CanvasView
+                        blocks={blocks}
+                        setBlocks={setBlocks}
+                        userId={userId}
                         db={db}
                         authReady={authReady}
                     />

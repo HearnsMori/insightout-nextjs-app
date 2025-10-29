@@ -197,7 +197,7 @@ const CreateRepoPage: React.FC = () => {
     // Placeholder for actual creation logic
     // Custom message box replacement for alert
     console.log("Repository created successfully! Redirecting to dashboard...");
-    window.location.href = '../dashboard'; 
+    window.location.href = '../repo'; 
   };
   
   const handleCancel = () => {
